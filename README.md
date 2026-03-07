@@ -2,8 +2,19 @@
 
 > **The first high-frequency, agentic job application engine designed specifically for the French and Global tech markets.**
 
-[![Mission Status: Online](https://img.shields.io/badge/Mission-Online-00A3FF?style=for-the-badge&logo=rocket)](https://github.com/daaksh05s/Agentic-Job-Mission-Control)
-[![Target: France 🇫🇷](https://img.shields.io/badge/Target-France%20%F0%9F%87%AB%F0%9F%87%B7-0055A4?style=for-the-badge)](https://github.com/daaksh05s/Agentic-Job-Mission-Control)
+![Mission Control Dashboard](./dashboard_preview.png)
+
+[![Mission Status: Online](https://img.shields.io/badge/Mission-Online-00A3FF?style=for-the-badge&logo=rocket)](https://github.com/Daaksh05/Agentic-Job-Mission-Control)
+[![Target: France 🇫🇷](https://img.shields.io/badge/Target-France%20%F0%9F%87%AB%F0%9F%87%B7-0055A4?style=for-the-badge)](https://github.com/Daaksh05/Agentic-Job-Mission-Control)
+[![Stage: Under Construction](https://img.shields.io/badge/Stage-Work%20In%20Progress-FFA500?style=for-the-badge&logo=git-lfs)](https://github.com/Daaksh05/Agentic-Job-Mission-Control)
+
+---
+
+> [!IMPORTANT]
+> **SYSTEM STATUS: WORK IN PROGRESS**
+> This project is currently in active development. While the core "Orbital" engine and "Command Center" UI are operational, some advanced modules (like LinkedIn Easy Apply automation and depth-scoring) are still being refined. Expected v1.0 stable release: May 2026.
+
+---
 
 ## 🚀 The Mission
 **Agentic-Job-Mission-Control** is not just a scraper; it's an autonomous "Human-in-the-loop" application pipeline. It handles everything from discovery on niche French job boards (WTTJ, Pôle Emploi) to generating 100% formal French cover letters (Vous/Moi/Nous) and performing automated, browser-based submissions with CAPTCHA-solved overrides.
@@ -38,7 +49,7 @@
 
 1. **Clone the Manifest**:
    ```bash
-   git clone https://github.com/daaksh05s/Agentic-Job-Mission-Control.git
+   git clone https://github.com/Daaksh05/Agentic-Job-Mission-Control.git
    cd Agentic-Job-Mission-Control
    ```
 
@@ -58,6 +69,13 @@
 
 ## 🌍 Market Strategy
 The agent prioritizes the **French Tech Market (98.2% efficiency)** while concurrently monitoring secondary targets in the **UK, US, Germany, and Canada**. It automatically handles language localization and formal tone requirements for European institutions.
+
+### 🚧 Current Roadmap
+- [x] Phase 1: High-speed Discovery on FR/Global boards
+- [x] Phase 2: AI Document Tailoring (FR/EN)
+- [x] Phase 3: Headless browser automation (Lever/Greenhouse)
+- [ ] Phase 4: LinkedIn Easy Apply autonomous handler (In Progress)
+- [ ] Phase 5: Deep-tier intelligence for interview coaching
 
 ---
 *Created by [Daakshayani Senthilkumar](https://ai-engineer-portfolio-jj7pvdk9v-daaksh05s-projects.vercel.app)*
