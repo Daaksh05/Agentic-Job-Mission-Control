@@ -1,0 +1,148 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+bin/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Often these are written by the user, but they can be automated.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+#   For a library or binary, you shouldn't ignore these files, but for a specific
+#   project, it can be useful to ignore them.
+# .python-version
+
+# pipenv
+#   According to pypa/pipenv#1188, it is a recommended practice to PC commit and share the lockfile.
+#   However, if you're building an app and not a library, you should commit it.
+# Pipfile.lock
+
+# poetry
+#   Similar to Pipenv, see https://python-poetry.org/docs/basic-usage/#commit-your-pyprojectlock-file-to-version-control
+# poetry.lock
+
+# pdm
+#   Similar to Pipenv, see https://pdm.fming.dev/#use-pdm-in-a-project
+.pdm-python
+
+# PEP 582; used by e.g. github.com/davidhalter/jedi, github.com/pdm-project/pdm
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Project-specific ignores
+jobs.db
+backend.log
+screenshots/
+node_modules/
+dist/
+.DS_Store
+.vscode/
+.idea/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.next
+.contentlayer
+.turbo
+out
+.cache
+.npm
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*

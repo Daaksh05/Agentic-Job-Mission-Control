@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0A0E1A;
+  --color-surface: #111827;
+  --color-accent-blue: #3B82F6;
+  --color-accent-green: #10B981;
+  --color-accent-amber: #F59E0B;
+
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Inter Display", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-white font-sans;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-surface/80 backdrop-blur-md border border-white/10 rounded-xl shadow-xl;
+  }
+
+  .badge-success {
+    @apply bg-accent-green/10 text-accent-green border border-accent-green/20 px-2 py-0.5 rounded-full text-xs font-mono;
+  }
+}

@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+pydantic-settings
+python-dotenv
+requests
+httpx
+python-multipart
+celery
+apscheduler
+playwright
+groq
+google-generativeai
+psycopg2-binary
+passlib[bcrypt]
+python-jose[cryptography]
