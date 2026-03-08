@@ -48,7 +48,12 @@ class JobSubmitter:
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"screenshots/{application_id}_{step}_{timestamp}.png"
         os.makedirs("screenshots", exist_ok=True)
-        await page.screenshot(path=filename, full_page=True)
+        # Add a timeout to screenshot to prevent hangups on font loading/heavy pages
+        try:
+            await page.screenshot(path=filename, full_page=False, timeout=10000)
+        except Exception as e:
+            print(f"DEBUG: Screenshot failed (non-fatal): {e}")
+            return ""
 
         db = SessionLocal()
         try:
@@ -65,6 +70,78 @@ class JobSubmitter:
         finally:
             db.close()
         return filename
+
+    async def _handle_interstitials(self, page: Page):
+        """Close common popups, cookie banners, and 'No thanks' prompts"""
+        print("DEBUG: Scanning for interstitials...")
+        interstitial_selectors = [
+            # Cookie Banners
+            "button:has-text('Accept All')",
+            "button:has-text('ACCEPT ALL')",
+            "button:has-text('Accepter tout')",
+            "#onetrust-accept-btn-handler",
+            ".cookie-banner__accept",
+            # Email Popups / Modals
+            "button:has-text('No thanks')",
+            "button:has-text('No, thanks')",
+            "button:has-text('Non merci')",
+            ".modal-close",
+            "[aria-label='Close']",
+            ".close-button",
+        ]
+        
+        for selector in interstitial_selectors:
+            try:
+                element = page.locator(selector).first
+                if await element.is_visible(timeout=300):
+                    print(f"DEBUG: Handling interstitial: {selector}")
+                    await element.click()
+                    await asyncio.sleep(0.3)
+            except:
+                continue
+        print("DEBUG: Interstitial scan complete.")
+
+    async def _find_and_click_apply(self, page: Page, application_id: int):
+        """Look for 'Apply' buttons on job boards to reach the actual ATS"""
+        apply_selectors = [
+            "a:has-text('Apply for this job')",  # Adzuna
+            "button:has-text('Apply Now')",
+            "a:has-text('Apply Now')",
+            "button:has-text('Postuler')",
+            "a:has-text('Postuler')",
+            ".apply-button",
+            "#apply-button",
+        ]
+
+        print("DEBUG: Searching for apply buttons...")
+        await self._ws_update(application_id, "Searching for application gateway...")
+        for selector in apply_selectors:
+            try:
+                element = page.locator(selector).first
+                if await element.is_visible(timeout=500):
+                    print(f"DEBUG: Found apply button: {selector}")
+                    await self._ws_update(application_id, "Found apply gateway, clicking...")
+                    
+                    # Try to detect new tab opening
+                    try:
+                        async with page.context.expect_page(timeout=5000) as new_page_info:
+                            await element.click()
+                        new_page = await new_page_info.value
+                        await new_page.wait_for_load_state("domcontentloaded", timeout=15000)
+                        print(f"DEBUG: Redirected to new tab: {new_page.url}")
+                        return new_page
+                    except:
+                        # Same-tab navigation
+                        try:
+                            await page.wait_for_load_state("domcontentloaded", timeout=15000)
+                        except:
+                            pass
+                        print(f"DEBUG: Same-tab navigation, now at: {page.url}")
+                        return page
+            except:
+                continue
+        print("DEBUG: No apply button found.")
+        return None
 
     async def _detect_captcha(self, page: Page) -> bool:
         """Detect common CAPTCHA types"""
@@ -135,21 +212,64 @@ class JobSubmitter:
             app = db.query(Application).filter(Application.id == application_id).first()
             if not app: return SubmissionResult(False, "failed", "Application not found")
 
+            await self._ws_update(application_id, "Initializing browser engine...")
             await self._setup_browser()
             page = await self.context.new_page()
             
             await self._ws_update(application_id, "Navigating to job page...")
-            await page.goto(app.job.url, wait_until="networkidle")
+            try:
+                # Use 'domcontentloaded' — fires much earlier than 'load' so we can
+                # interact with the page before all trackers/ads finish loading.
+                await page.goto(app.job.url, wait_until="domcontentloaded", timeout=30000)
+            except Exception as e:
+                print(f"DEBUG: Navigation timeout/error: {e}")
+                await self._ws_update(application_id, "Navigation slow, attempting to proceed...")
+            # Brief wait for dynamic content (popups, apply buttons) to render
+            await asyncio.sleep(2)
+
+            await self._ws_update(application_id, "Analyzing job board structure...")
+            await self._handle_interstitials(page)
+            print("DEBUG: Taking pre-fill screenshot...")
             await self._take_screenshot(page, "before_fill", application_id)
+            print("DEBUG: Screenshot done. Checking for CAPTCHA...")
 
             # Check for CAPTCHA immediately
             if await self._detect_captcha(page):
+                print("DEBUG: CAPTCHA detected!")
                 solved = await self._handle_captcha(page, application_id)
                 if not solved: return SubmissionResult(False, "failed", "CAPTCHA timeout")
 
-            # Detect ATS and fill
-            content = await page.content()
-            url = page.url()
+            print("DEBUG: Getting page content...")
+            # Use evaluate instead of content() to avoid hanging on slow-loading pages
+            try:
+                content = await asyncio.wait_for(
+                    page.evaluate("() => document.documentElement.outerHTML"),
+                    timeout=5
+                )
+            except asyncio.TimeoutError:
+                print("DEBUG: page.evaluate timed out, using empty content")
+                content = ""
+            url = page.url
+            print(f"DEBUG: Current URL: {url}")
+            
+            # If no immediate ATS detected, try to find an 'Apply' button (Job Board Redirection)
+            if not any(x in content for x in ['greenhouse.io', 'jobs.lever.co']) and \
+               not any(x in url for x in ['myworkdayjobs.com', 'workday.com']):
+                
+                redirected_page = await self._find_and_click_apply(page, application_id)
+                if redirected_page:
+                    page = redirected_page
+                    await self._handle_interstitials(page)
+                    try:
+                        content = await asyncio.wait_for(
+                            page.evaluate("() => document.documentElement.outerHTML"),
+                            timeout=5
+                        )
+                    except asyncio.TimeoutError:
+                        content = ""
+                    url = page.url
+                    print(f"DEBUG: After redirect, URL: {url}")
+                    await self._take_screenshot(page, "after_redirect", application_id)
             
             success = False
             platform = "Generic"

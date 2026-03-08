@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from sqlalchemy.orm import Session, joinedload
 from models.database import get_db
 from models.models import Application, Job, AppStatus, Profile, SubmissionLog
 from agents.writer import writer_agent
 from typing import List
-from fastapi import WebSocket, WebSocketDisconnect
 import asyncio
 
 router = APIRouter(prefix="/applications", tags=["applications"])
@@ -31,15 +30,15 @@ async def generate_interview_prep(app_id: int, db: Session = Depends(get_db)):
 
 @router.get("/")
 async def list_applications(db: Session = Depends(get_db)):
-    return db.query(Application).join(Job).all()
+    return db.query(Application).options(joinedload(Application.job)).all()
 
-@router.post("/{job_id}/generate")
+@router.post("/generate/{job_id}")
 async def generate_application_docs(job_id: str, db: Session = Depends(get_db)):
     job = db.query(Job).filter(Job.id == job_id).first()
     profile = db.query(Profile).first()
     
     if not job or not profile or not profile.master_resume:
-        raise HTTPException(status_code=400, detail="Missing job or profile data")
+        raise HTTPException(status_code=400, detail="Missing master resume. Please upload your resume in the Profile section first.")
 
     # Call Writer Agent
     docs = await writer_agent.generate_tailored_docs(
@@ -58,11 +57,15 @@ async def generate_application_docs(job_id: str, db: Session = Depends(get_db)):
             cover_letter=docs["cover_letter"]
         )
         db.add(app)
+        db.flush()
     else:
         app.tailored_resume = docs["cv"]
         app.cover_letter = docs["cover_letter"]
     
     db.commit()
+    
+    # Refresh to ensure job relationship is loaded for return
+    app = db.query(Application).options(joinedload(Application.job)).filter(Application.id == app.id).first()
     return app
 
 @router.patch("/{app_id}/status")
@@ -82,12 +85,13 @@ async def submit_application(app_id: int, db: Session = Depends(get_db)):
     from agents.submitter import submitter
     from services.websocket_service import manager
     
-    # Run submission background task (simplified for now)
-    # In production, use Celery
     async def run_submission():
-        await manager.send_status(app_id, {"step": "Opening application page..."})
-        result = await submitter.submit(app_id)
-        await manager.send_status(app_id, {"step": "Finished", "result": result.status})
+        try:
+            await manager.send_status(app_id, {"step": "Opening application page..."})
+            result = await submitter.submit(app_id)
+            await manager.send_status(app_id, {"step": "Finished", "result": result.status})
+        except Exception as e:
+            await manager.send_status(app_id, {"step": "Finished", "result": "failed", "message": f"Critical Error: {str(e)}"})
 
     asyncio.create_task(run_submission())
     return {"message": "Submission started"}
@@ -101,3 +105,4 @@ async def submission_websocket(websocket: WebSocket, app_id: int):
             await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(app_id, websocket)
+

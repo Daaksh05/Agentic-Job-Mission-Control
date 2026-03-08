@@ -14,12 +14,19 @@ async def discover_jobs(country: str = "FR", db: Session = Depends(get_db)):
     jobs_data = await job_service.get_all_jobs(country=country)
     
     new_jobs = []
+    seen_ids = set()
     for j in jobs_data:
-        existing = db.query(Job).filter(Job.id == str(j["id"])).first()
+        job_id = str(j["id"])
+        if job_id in seen_ids:
+            continue
+        seen_ids.add(job_id)
+        
+        existing = db.query(Job).filter(Job.id == job_id).first()
         if not existing:
             job = Job(**j)
             db.add(job)
             new_jobs.append(job)
+
     
     db.commit()
     return {"count": len(new_jobs), "total": len(jobs_data)}
@@ -36,12 +43,16 @@ async def score_job(job_id: str, db: Session = Depends(get_db)):
     profile = db.query(Profile).first()
     
     if not job or not profile or not profile.master_resume:
-        raise HTTPException(status_code=400, detail="Missing job or resume data")
+        raise HTTPException(status_code=400, detail="Missing master resume. Please upload your resume in the Profile section first.")
     
     analysis = await ai_service.match_job(profile.master_resume, job.description)
     
+    # Handle error responses which might be strings
+    if isinstance(analysis, str):
+        return {"job_id": job_id, "error": analysis, "score": 0}
+    
     # Update job with AI results
-    base_score = analysis.get("score", 0)
+    base_score = analysis.get("score", 0) if isinstance(analysis, dict) else 0
     
     # Apply Country Boost
     from config import COUNTRY_SCORE_BOOST
@@ -53,6 +64,7 @@ async def score_job(job_id: str, db: Session = Depends(get_db)):
     
     db.commit()
     return {"job_id": job_id, "score": job.match_score, "base_score": base_score, "boost": boost}
+
 @router.post("/vie/scan")
 async def scan_vie_jobs(db: Session = Depends(get_db)):
     """Manually trigger VIE discovery for IT/Telecom."""

@@ -48,6 +48,7 @@ export default function JobsPage() {
 
     const countries = [
         { id: 'ALL', label: 'All', flag: '🌍' },
+        { id: 'IN', label: 'India', flag: '🇮🇳' },
         { id: 'FR', label: 'France', flag: '🇫🇷', primary: true },
         { id: 'REMOTE', label: 'Remote', flag: '🌐' },
         { id: 'GB', label: 'UK', flag: '🇬🇧' },

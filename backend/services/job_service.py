@@ -58,6 +58,8 @@ class JobService:
 
     async def get_all_jobs(self, country: str = "FR") -> List[Dict[str, Any]]:
         """Aggregate jobs from multiple sources with priority and quota allocation."""
+        print(f"DEBUG: Starting job discovery for {country}...")
+
         
         # Expanded queries for better discovery
         queries = [
@@ -72,49 +74,59 @@ class JobService:
         # Priority Order: WTTJ -> Pôle Emploi (Gap 6) -> Adzuna(FR) -> Remotive -> Others
         
         # 1. WTTJ
+        print("DEBUG: Fetching WTTJ jobs...")
         wttj_jobs = await discovery_agent.fetch_wttj()
+
         
         # 2. Pôle Emploi
+        print("DEBUG: Fetching Pôle Emploi jobs...")
         pe_jobs = await discovery_agent.fetch_pole_emploi()
+
         
         # 3. VIE Jobs (Official Government Source)
+        print("DEBUG: Fetching VIE jobs...")
         vie_jobs = await vie_discovery.fetch_vie_jobs()
+
         
-        # 4. France Adzuna
+        # 4. India Jobs (User's Region)
+        print("DEBUG: Fetching Adzuna jobs for India...")
+        in_adzuna = []
+        for q in queries[:3]:
+            in_adzuna += await self.fetch_adzuna_jobs(query=q, location="in", limit=50)
+            for j in in_adzuna: j["country"] = "IN"
+
+        # 5. France Adzuna
         fr_adzuna = []
-        for q in queries[:3]: # Limit queries to save quota
+        print(f"DEBUG: Fetching Adzuna jobs for FR...")
+        for q in queries[:3]:
             fr_adzuna += await self.fetch_adzuna_jobs(query=q, location="fr", limit=40)
-        
-        # 5. Remote
+
+        # 6. Remote (Global + Region Compatible)
+        print("DEBUG: Fetching Remote jobs...")
         remote_jobs = await self.fetch_remotive_jobs()
+        # Add region-friendly Adzuna searches (GB/EU often have better timezone overlap)
+        remote_adzuna = await self.fetch_adzuna_jobs(query="remote software engineer", location="gb", limit=30)
+        for j in remote_adzuna: j["country"] = "REMOTE"
         
-        # 6. EU
-        eu_countries = ["gb", "de", "nl", "be", "ch"]
+        # 7. EU & Rest
         eu_jobs = []
-        for c in eu_countries[:3]:
-             eu_jobs += await self.fetch_adzuna_jobs(query="software engineer", location=c, limit=30)
+        for c in ["de", "nl", "be"]:
+             eu_jobs += await self.fetch_adzuna_jobs(query="software engineer", location=c, limit=20)
              
-        # 7. Rest
-        rest_jobs = await self.fetch_adzuna_jobs(query="software engineer", location="us", limit=50)
+        rest_jobs = await self.fetch_adzuna_jobs(query="software engineer", location="us", limit=30)
 
         # 8. LinkedIn Easy Apply
+        print("DEBUG: Fetching LinkedIn jobs...")
         linkedin_jobs = await linkedin_discovery.search_jobs()
 
-        all_jobs_raw = wttj_jobs + pe_jobs + vie_jobs + fr_adzuna + remote_jobs + eu_jobs + rest_jobs + linkedin_jobs
-        
+        print(f"DEBUG: Discovery complete. Found {len(wttj_jobs)} WTTJ, {len(pe_jobs)} PE, {len(vie_jobs)} VIE, {len(in_adzuna)} Adzuna IN, {len(fr_adzuna)} Adzuna FR, {len(remote_jobs)} Remotive, {len(linkedin_jobs)} LinkedIn.")
+        all_jobs_raw = wttj_jobs + pe_jobs + vie_jobs + in_adzuna + fr_adzuna + remote_jobs + remote_adzuna + eu_jobs + rest_jobs + linkedin_jobs
+
         normalized = []
         for job in all_jobs_raw:
             source = job.get("source", "Adzuna" if "redirect_url" in job else "Remotive")
             country_code = job.get("country", "REMOTE").upper()
             
-            # Base score initialization
-            score = 0
-            # Apply 15% FR boost if country matches primary
-            if country_code == PRIMARY_COUNTRY:
-                # We'll calculate actual score later in matcher agent, 
-                # but we can set a multiplier flag or base boost here
-                pass
-
             if source == "wttj":
                 normalized_job = job
             else:
@@ -134,17 +146,17 @@ class JobService:
                 }
             normalized.append(normalized_job)
             
-        # Sort: VIE + WTTJ + PE + FR first
+        # Sort Preference: VIE > WTTJ > PE > IN > FR > Others
         normalized.sort(key=lambda x: (
             0 if x["job_type"] == "VIE" else
             1 if x["source"] == "wttj" else 
             2 if x["source"] == "pole-emploi" else
-            3 if x["country"] == PRIMARY_COUNTRY else 
-            4
+            3 if x["country"] == "IN" else
+            4 if x["country"] == PRIMARY_COUNTRY else 
+            5
         ))
         
         return normalized
 
-job_service = JobService()
 
 job_service = JobService()
