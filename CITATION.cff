@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+title: "Agentic-Job-Mission-Control (Orbital v3.0)"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: "Senthilkumar"
+    given-names: "Daakshayani"
+    orcid: "https://orcid.org/YOUR-ORCID-ID"  # optional but recommended
+repository-code: "https://github.com/Daaksh05/Agentic-Job-Mission-Control"
+url: "https://github.com/Daaksh05/Agentic-Job-Mission-Control"
+abstract: "Autonomous agentic job application engine optimized for the French & Global tech markets."
+keywords:
+  - job-automation
+  - agentic-ai
+  - fastapi
+  - playwright
+  - gemini
+version: "3.0.0"
+date-released: "2026-03-08"
+license: MIT
