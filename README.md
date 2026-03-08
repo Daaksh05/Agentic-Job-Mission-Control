@@ -6,8 +6,8 @@
 
 [![Mission Status: Online](https://img.shields.io/badge/Mission-Online-00A3FF?style=for-the-badge&logo=rocket)](https://github.com/Daaksh05/Agentic-Job-Mission-Control)
 [![Target: France 🇫🇷](https://img.shields.io/badge/Target-France%20%F0%9F%87%AB%F0%9F%87%B7-0055A4?style=for-the-badge)](https://github.com/Daaksh05/Agentic-Job-Mission-Control)
-[![Target: India 🇮🇳](https://img.shields.io/badge/Target-India%20%F0%9F%87%AE%F0%9F%87%B3-FF9933?style=for-the-badge)](https://github.com/Daaksh05/Agentic-Job-Mission-Control)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18912053.svg)](https://doi.org/10.5281/zenodo.18912053)
+[![Target: India 🇮🇳](https://img.shields.io/badge/Target-India-FF9933?style=for-the-badge)](https://github.com/Daaksh05/Agentic-Job-Mission-Control)
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.18912053.svg)](https://doi.org/10.5281/zenodo.18912053)
 [![Stage: Under Construction](https://img.shields.io/badge/Stage-Work%20In%20Progress-FFA500?style=for-the-badge&logo=git-lfs)](https://github.com/Daaksh05/Agentic-Job-Mission-Control)
 
 ---
