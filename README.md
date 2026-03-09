@@ -42,6 +42,7 @@
 | **Job Board Redirection** | Navigates from Adzuna landing pages to the actual ATS forms |
 | **WebSocket Status Stream** | Real-time Autopilot progress updates in the UI |
 | **Async AI Processing** | Non-blocking AI calls prevent backend hangs |
+| **PDF Text Extraction** | Automatic parsing of professional PDF resumes and papers |
 
 ## 🛠 High-Performance Stack
 - **Frontend**: React 18, Vite, TanStack Query, Framer Motion, Tailwind CSS, Lucide Icons.
@@ -91,16 +92,33 @@
 3. **Fuel the Backend**:
    ```bash
    cd backend
-   pip install -r requirements.txt
+   # If 'pip' is not found, use 'pip3' or 'python3 -m pip'
+   python3 -m pip install -r requirements.txt
    python3 main.py
    ```
 
 4. **Ignite the Frontend**:
    ```bash
-   cd ../frontend
+   cd frontend
    npm install
    npm run dev
    ```
+
+## 📜 Citation & Research
+If you use this software in your research, please cite it using the following DOI:
+
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.18912053.svg)](https://doi.org/10.5281/zenodo.18912053)
+
+```bibtex
+@software{senthilkumar_2026_agentic,
+  author       = {Daakshayani Senthilkumar},
+  title        = {Agentic-Job-Mission-Control: An Autonomous Job Application AI},
+  year         = 2026,
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.18912053},
+  url          = {https://doi.org/10.5281/zenodo.18912053}
+}
+```
 
 ## 🌍 Market Strategy
 The agent prioritizes the **French Tech Market** and the **Indian Tech Market** while concurrently monitoring secondary targets in the **UK, Germany, Netherlands, Canada, and Remote**. It automatically handles language localization and formal tone requirements for European institutions.
