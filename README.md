@@ -130,8 +130,8 @@ The agent prioritizes the **French Tech Market** and the **Indian Tech Market** 
 - [x] Phase 4: Autopilot interstitial handling & job board redirection
 - [x] Phase 5: VIE Mission Tracker (Civiweb integration)
 - [x] Phase 6: Telegram Bot telemetry & notifications
-- [ ] Phase 7: LinkedIn Easy Apply autonomous handler (In Progress)
-- [ ] Phase 8: Deep-tier intelligence for interview coaching
+- [x] Phase 7: LinkedIn Easy Apply autonomous handler
+- [x] Phase 8: Deep-tier intelligence for interview coaching
 
 ---
 *Created by [Daakshayani Senthilkumar](https://ai-engineer-portfolio-jj7pvdk9v-daaksh05s-projects.vercel.app)*

@@ -111,7 +111,8 @@ export default function InterviewPrep() {
         { id: 'behavioral', label: 'Behavioral', icon: <UserCheck size={18} /> },
         { id: 'projects', label: 'Projects', icon: <Code size={18} /> },
         { id: 'questions', label: 'Ask Them', icon: <MessageSquare size={18} /> },
-        ...(prep.french_specific_tips ? [{ id: 'french', label: 'French Tips', icon: <span>🇫🇷</span> }] : []),
+        { id: 'french', label: 'French Tips', icon: <span>🇫🇷</span> },
+        { id: 'deep', label: 'Deep Strategy', icon: <ShieldCheck size={18} /> },
         { id: 'salary', label: 'Salary', icon: <Euro size={18} /> },
     ];
 
@@ -319,6 +320,56 @@ export default function InterviewPrep() {
                                             🇫🇷 Mention "Choose France Tour"
                                         </div>
                                     )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'deep' && prep.deep_tier_intelligence && (
+                        <div className="space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="glass-card p-8 space-y-6">
+                                    <h3 className="text-xl font-black italic uppercase tracking-tighter text-accent-purple">Competitor Analysis</h3>
+                                    <p className="text-gray-400 font-medium leading-relaxed">{prep.deep_tier_intelligence.competitor_analysis.market_position}</p>
+                                    <div className="space-y-3">
+                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Main Rivals</span>
+                                        <div className="flex flex-wrap gap-2">
+                                            {prep.deep_tier_intelligence.competitor_analysis.main_rivals?.map((r: string) => (
+                                                <span key={r} className="bg-white/5 px-3 py-1.5 rounded-lg text-[10px] font-bold">{r}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="glass-card p-8 space-y-6">
+                                    <h3 className="text-xl font-black italic uppercase tracking-tighter text-accent-amber">Negotiation Script</h3>
+                                    <div className="space-y-4">
+                                        {prep.deep_tier_intelligence.negotiation_strategy.script_lines?.map((s: string, i: number) => (
+                                            <div key={i} className="p-4 bg-accent-amber/5 border border-accent-amber/10 rounded-2xl text-sm italic font-medium leading-relaxed">
+                                                "{s}"
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="glass-card p-8 space-y-8">
+                                <h3 className="text-2xl font-black italic uppercase tracking-tighter text-accent-blue flex items-center gap-3">
+                                    <Terminal size={24} /> Mock Interview Simulator
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    {prep.deep_tier_intelligence.mock_interview_simulator?.map((s: any, i: number) => (
+                                        <div key={i} className="bg-white/[0.02] border border-white/5 rounded-[2rem] p-8 space-y-4 hover:border-accent-blue/50 transition-all cursor-pointer group">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[10px] font-black uppercase text-accent-blue tracking-widest">Scenario {i + 1}</span>
+                                                <Zap size={14} className="text-accent-blue group-hover:animate-pulse" />
+                                            </div>
+                                            <p className="text-sm font-bold leading-relaxed italic text-white/90">"{s.scenario}"</p>
+                                            <div className="pt-6 mt-4 border-t border-white/5 flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                                                <span className="text-gray-500">LVL: {s.difficulty_level}</span>
+                                                <button className="text-accent-blue hover:text-white transition-colors">Start Simulator →</button>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>

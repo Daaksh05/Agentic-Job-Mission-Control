@@ -3,6 +3,7 @@ import random
 import os
 import datetime
 import base64
+import json
 from typing import Dict, Any, List, Optional
 from playwright.async_api import async_playwright, Page, BrowserContext
 from sqlalchemy.orm import Session
@@ -36,6 +37,17 @@ class JobSubmitter:
             user_agent=random.choice(self.user_agents),
             viewport={"width": 1280, "height": 800}
         )
+        
+        # Load LinkedIn session if exists
+        session_path = os.path.join(os.getcwd(), "linkedin_session.json")
+        if os.path.exists(session_path):
+            try:
+                with open(session_path, "r") as f:
+                    cookies = json.load(f)
+                    await self.context.add_cookies(cookies)
+                print("DEBUG: Loaded LinkedIn session cookies.")
+            except Exception as e:
+                print(f"DEBUG: Failed to load cookies: {e}")
 
     async def _human_delay(self, min_s=0.8, max_s=2.5):
         await asyncio.sleep(random.uniform(min_s, max_s))
@@ -317,6 +329,87 @@ class JobSubmitter:
         finally:
             if self.browser: await self.browser.close()
             db.close()
+
+    async def _fill_linkedin_easy_apply(self, page: Page, app: Application) -> bool:
+        """Phase 7: LinkedIn Easy Apply autonomous handler"""
+        try:
+            await self._ws_update(app.id, "Starting LinkedIn Easy Apply...")
+            print("DEBUG: LinkedIn Easy Apply process started.")
+
+            # 1. Click 'Easy Apply' button if it exists
+            easy_apply_btn = page.locator("button:has-text('Easy Apply')").first
+            if await easy_apply_btn.is_visible(timeout=5000):
+                await easy_apply_btn.click()
+                print("DEBUG: Clicked initial Easy Apply button.")
+            else:
+                # Might already be in the modal if redirected directly
+                print("DEBUG: Easy Apply button not found, checking if already in modal.")
+
+            # 2. Sequential Navigation through modal steps
+            max_steps = 12
+            for i in range(max_steps):
+                await asyncio.sleep(1.5) # Give UI time to transition
+                
+                # Check for submission success first
+                if await page.locator("h3:has-text('Application submitted')").is_visible(timeout=2000) or \
+                   await page.locator("li:has-text('Application submitted')").is_visible(timeout=500):
+                    await self._ws_update(app.id, "Mission Accomplished: Application Submitted!")
+                    print("DEBUG: LinkedIn Submission Confirmed.")
+                    return True
+
+                # Look for 'Submit application'
+                submit_btn = page.locator("button:has-text('Submit application')").first
+                if await submit_btn.is_visible(timeout=1000):
+                    await self._ws_update(app.id, "Finalizing: Submitting application...")
+                    await submit_btn.click()
+                    print("DEBUG: Clicked Submit Application.")
+                    await asyncio.sleep(3)
+                    continue # One more loop to confirm success
+
+                # Look for 'Next'
+                next_btn = page.locator("button:has-text('Next')").first
+                if await next_btn.is_visible(timeout=1000):
+                    # Handle common fields (Phone, etc.) before clicking next
+                    await self._handle_linkedin_fields(page)
+                    await self._ws_update(app.id, f"Navigating LinkedIn steps ({i+1})...")
+                    await next_btn.click()
+                    print(f"DEBUG: Clicked Next (Step {i+1}).")
+                    continue
+
+                # Look for 'Review'
+                review_btn = page.locator("button:has-text('Review')").first
+                if await review_btn.is_visible(timeout=1000):
+                    await self._ws_update(app.id, "Reviewing application...")
+                    await review_btn.click()
+                    print("DEBUG: Clicked Review.")
+                    continue
+
+                # If no buttons found, we might be stuck on a mandatory question
+                print("DEBUG: No standard navigation buttons found. Checking for errors or mandatory fields.")
+                if await page.locator(".artdeco-inline-feedback--error").is_visible(timeout=500):
+                    await self._mark_manual(app.id, "LinkedIn: Stuck on complex mandatory questions.")
+                    return False
+
+            return False
+        except Exception as e:
+            print(f"DEBUG: LinkedIn Easy Apply Error: {str(e)}")
+            return False
+
+    async def _handle_linkedin_fields(self, page: Page):
+        """Fill common LinkedIn Easy Apply fields automatically"""
+        try:
+            # Phone number if missing
+            phone_input = page.locator("input[id*='phoneNumber']").first
+            if await phone_input.is_visible(timeout=500) and not await phone_input.input_value():
+                await phone_input.fill("+919876543210") # Placeholder or profile-based
+            
+            # Additional checkboxes (terms, etc.)
+            checkboxes = await page.locator("input[type='checkbox']").all()
+            for cb in checkboxes:
+                if not await cb.is_checked():
+                    await cb.check()
+        except:
+            pass
 
     async def _fill_greenhouse(self, page: Page, app: Application) -> bool:
         try:

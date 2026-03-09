@@ -42,7 +42,12 @@ class InterviewPrepGenerator:
               "projects_to_highlight": [ {{ "project": "...", "why_relevant": "...", "talking_points": [] }} ],
               "questions_to_ask_them": [ "..." ],
               "french_specific_tips": {{ "language_note": "...", "cultural_tips": [], "mention_choose_france": true, "eu_ai_act_relevance": "..." }},
-              "salary_guidance": {{ "expected_range": "...", "vie_rate": "€2,747/month if VIE", "when_to_discuss": "..." }}
+              "salary_guidance": {{ "expected_range": "...", "vie_rate": "€2,747/month if VIE", "when_to_discuss": "..." }},
+              "deep_tier_intelligence": {{
+                "competitor_analysis": {{ "market_position": "...", "main_rivals": [], "unique_selling_point": "..." }},
+                "negotiation_strategy": {{ "script_lines": [], "leverage_points": [] }},
+                "mock_interview_simulator": [ {{ "scenario": "...", "difficulty_level": "...", "expected_outcome": "..." }} ]
+              }}
             }}
             
             Return ONLY valid JSON. Be specific — use her actual projects.
