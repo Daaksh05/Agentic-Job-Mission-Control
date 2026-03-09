@@ -104,7 +104,8 @@ class JobSubmitter:
     async def _find_and_click_apply(self, page: Page, application_id: int):
         """Look for 'Apply' buttons on job boards to reach the actual ATS"""
         apply_selectors = [
-            "a:has-text('Apply for this job')",  # Adzuna
+            "a.bg-adzuna-green-500",             # Adzuna primary
+            "a:has-text('Apply for this job')",  # Adzuna text
             "button:has-text('Apply Now')",
             "a:has-text('Apply Now')",
             "button:has-text('Apply')",
@@ -124,7 +125,7 @@ class JobSubmitter:
         for selector in apply_selectors:
             try:
                 element = page.locator(selector).first
-                if await element.is_visible(timeout=500):
+                if await element.is_visible(timeout=2000):
                     print(f"DEBUG: Found apply button: {selector}")
                     await self._ws_update(application_id, "Found apply gateway, clicking...")
                     
@@ -280,34 +281,24 @@ class JobSubmitter:
             success = False
             platform = "Generic"
 
-            if app.job.ats_type == "greenhouse":
+            # Fallback to generic if ATS type is not explicitly set or recognized
+            if 'greenhouse.io' in content:
                 success = await self._fill_greenhouse(page, app)
                 platform = "Greenhouse"
-            elif app.job.ats_type == "lever":
+            elif 'jobs.lever.co' in content:
                 success = await self._fill_lever(page, app)
                 platform = "Lever"
-            elif app.job.ats_type == "workday":
+            elif 'myworkdayjobs.com' in url or 'workday.com' in url:
                 success = await self._fill_workday(page, app)
                 platform = "Workday"
-            elif app.job.ats_type == "linkedin_easy_apply":
+            elif 'linkedin.com' in url and app.job.has_easy_apply:
                 # LinkedIn safety: Longer delay
                 await asyncio.sleep(random.uniform(5, 10))
                 success = await self._fill_linkedin_easy_apply(page, app)
                 platform = "LinkedIn Easy Apply"
             else:
-                # Fallback to generic if ATS type is not explicitly set or recognized
-                if 'greenhouse.io' in content:
-                    success = await self._fill_greenhouse(page, app)
-                    platform = "Greenhouse"
-                elif 'jobs.lever.co' in content:
-                    success = await self._fill_lever(page, app)
-                    platform = "Lever"
-                elif 'myworkdayjobs.com' in url or 'workday.com' in url:
-                    success = await self._fill_workday(page, app)
-                    platform = "Workday"
-                else:
-                    success = await self._fill_generic(page, app)
-                    platform = "Generic"
+                success = await self._fill_generic(page, app)
+                platform = "Generic"
 
             if success:
                 app.status = AppStatus.APPLIED
@@ -318,6 +309,9 @@ class JobSubmitter:
                 return SubmissionResult(False, "failed", "Form filling failed", platform=platform)
 
         except Exception as e:
+            print(f"DEBUG: Autopilot error: {str(e)}")
+            import traceback
+            traceback.print_exc()
             await self._take_screenshot(page, "error", application_id)
             return SubmissionResult(False, "failed", str(e))
         finally:
