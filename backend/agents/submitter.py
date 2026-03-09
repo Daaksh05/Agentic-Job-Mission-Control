@@ -107,10 +107,16 @@ class JobSubmitter:
             "a:has-text('Apply for this job')",  # Adzuna
             "button:has-text('Apply Now')",
             "a:has-text('Apply Now')",
+            "button:has-text('Apply')",
+            "a:has-text('Apply')",
             "button:has-text('Postuler')",
             "a:has-text('Postuler')",
+            "a:has-text('Continue to apply')",
+            "button:has-text('Continue to apply')",
+            "a:has-text('Go to application')",
             ".apply-button",
             "#apply-button",
+            "[aria-label*='Apply']",
         ]
 
         print("DEBUG: Searching for apply buttons...")
